@@ -5,13 +5,40 @@ import { useAccount, useContract, useProvider } from "wagmi";
 import { ethers } from "ethers";
 
 const TokenBal = () => {
+  const { address } = useAccount();
+  const provider = useProvider();
   const [tokenBal, setTokenBal] = useState("0");
   const [rewardBal, setRewardBal] = useState("0");
+  const tokenContract = useContract({
+    address: TokenAbi.address,
+    abi: TokenAbi.abi,
+    signerOrProvider: provider,
+  });
+  const stakingContract = useContract({
+    address: StakingAbi.address,
+    abi: StakingAbi.abi,
+    signerOrProvider: provider,
+  });
 
-  useEffect(() => {
+  useEffect( () => {
     if (address && stakingContract && tokenContract) {
-      const getReward = async () => {};
-      const getBalance = async () => {};
+      const getReward = async () => {
+        try {
+          const reward = await stakingContract?.calculateReward(address);
+          setRewardBal(ethers.utils.formatUnits(reward, 18));
+        } catch (err) {
+          console.log(err);
+        }
+      };
+      const getBalance = async () => {
+        try {
+          const tokenBalance = await tokenContract?.balanceOf(address);
+
+          setTokenBal(ethers.utils.formatEther(tokenBalance));
+        } catch (err) {
+          console.log(err);
+        }
+      };
       getReward();
       getBalance();
     }

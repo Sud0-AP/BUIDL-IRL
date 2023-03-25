@@ -1,19 +1,85 @@
-import React, { useEffect, useState } from "react";
+import React, { SVGProps, useEffect, useState } from "react";
 import Image from "next/image";
 import NFTAbi from "@/ABIs/BuidlNFT.json";
 import StakingAbi from "@/ABIs/Staking.json";
 import { useAccount, useContract, useSigner } from "wagmi";
 
 const NFTCard = ({ url, stake, tokenId }) => {
+  const { data: signer } = useSigner();
+  const { address } = useAccount();
+  const stakingContract = useContract({
+    address: StakingAbi.address,
+    abi: StakingAbi.abi,
+    signerOrProvider: signer,
+  });
+  const nftContract = useContract({
+    address: NFTAbi.address,
+    abi: NFTAbi.abi,
+    signerOrProvider: signer,
+  });
+
   const [nft, setNft] = useState({
     name: "",
     image: "",
     desc: "",
     tokenID: tokenId,
   });
-  const stakeNft = async () => {};
-  const unStakeNft = async () => {};
-  useEffect(() => {}, [tokenId, url]);
+  const stakeNft = async () => {
+    try {
+      const approve = await nftContract?.isApprovedForAll(
+        address,
+        StakingAbi.address
+      );
+      console.log(approve);
+      if (!approve) {
+        const tx1 = await nftContract?.setApprovalForAll(
+          StakingAbi.address,
+          true
+        );
+      }
+      setTimeout(async () => {
+        const tx = await stakingContract?.stakeNFT(nft.tokenID);
+        console.log(tx);
+        window.alert("NFT Stake Successful");
+      }, 2000);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  const unStakeNft = async () => {
+    try {
+      const tx = await stakingContract?.unStakeNFT(nft.tokenID);
+      console.log(tx);
+      const approve = await nftContract?.setApprovalForAll(
+        StakingAbi.address,
+        false
+      );
+      console.log(tx);
+      window.alert("NFT Unstake Successful");
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  useEffect(() => {
+    if (url) {
+      const getData = async () => {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+
+          setNft({
+            name: data.name,
+            image: data.image,
+            desc: data.description,
+            tokenID: tokenId,
+          });
+        } catch (err) {
+          console.log(err);
+        }
+      };
+      getData();
+    }
+  }, [tokenId, url]);
 
   return (
     <div>

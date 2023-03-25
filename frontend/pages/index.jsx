@@ -1,6 +1,12 @@
 import Head from "next/head";
+import { useAccount } from "wagmi";
+import TokenBal from "@/components/Modal/TokenBal";
+import StakedNft from "@/components/Modal/StakedNft";
+import UnstakedNft from "@/components/Modal/UnstakedNft";
 
 export default function Home() {
+  const { address } = useAccount();
+
   return (
     <>
       <Head>
@@ -10,14 +16,21 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <div className="flex justify-center">
-          <section className="px-5 border rounded-lg my-20 shadow-lg bg-[#0000009d]">
-            <h2 className="text-5xl text-center p-7">
-              GM GM GM ! <br />
-              🎆 Welcome to BUIDL Day-2 🎆
-            </h2>
-          </section>
-        </div>
+        {address ? (
+          <div>
+            <TokenBal />
+            <StakedNft />
+            <UnstakedNft />
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <section className="px-5 border rounded-lg my-20 shadow-lg bg-[#0000009d]">
+              <h2 className="text-2xl my-10">
+                Connect wallet to get started !!
+              </h2>
+            </section>
+          </div>
+        )}
       </main>
     </>
   );
